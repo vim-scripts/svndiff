@@ -54,6 +54,8 @@
 "
 " 1.1 2007-04-02	Added goto prev/next diffblock commands
 "
+" 1.2 2007-06-14  Updated diff arguments from -u0 (obsolete) to -U0
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -82,7 +84,7 @@ function! Svndiff_show(...)
 	" in a friendly parsable format
 
 	let contents = join(getbufline("%", 1, "$"), "\n")
-	let diff = system("diff -u0 <(svn cat " . fname . ") <(cat;echo)", contents)
+	let diff = system("diff -U0 <(svn cat " . fname . ") <(cat;echo)", contents)
 
 
 	" Parse the output of the diff command and hightlight changed, added and
