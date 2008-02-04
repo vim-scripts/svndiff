@@ -106,8 +106,11 @@
 "
 " 3.0 2008-02-02  Redesign with some ideas from Jan Bezdekovsky. The
 "                 diff is only updated when the buffer actually changes,
-"                 and cleanup of signs is now done properly and some info
+"                 cleanup of signs is now done properly and some info
 "                 about each diff block is printed in the status line.
+"
+" 3.1 2008-02-04  Fixed bug that broke plugin in non-english locales, thanks
+"                 to Bernhard Walle for the patch
 "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -126,23 +129,23 @@ function s:Svndiff_update(...)
 	let fname = bufname("%")
 
 	if ! exists("s:is_active[fname]")
-		return
+		return 0
 	end
 
 	" Check if this file is managed by subversion, exit otherwise
 	
-	let info = system("svn info " . fname)
+	let info = system("LANG=C svn info " . fname)
 	if match(info, "Path") == -1
 		echom "Svndiff: Warning, file " . fname . " is not managed by subversion, or error running svn."
 		unlet s:is_active[fname]
-		return
+		return 0
 	end
 
 	" Check if the changedticks changed since the last invocation of this
 	" function. If nothing changed, there's no need to update the signs.
 
 	if exists("s:changedtick[fname]") && s:changedtick[fname] == b:changedtick
-		return
+		return 1
 	end
 	let s:changedtick[fname] = b:changedtick
 
@@ -243,7 +246,7 @@ function s:Svndiff_prev(...)
 			return
 		endif
 	endfor
-	echom 'svndiff: no more diff blocks above this one'
+	echom 'svndiff: no more diff blocks above cursor'
 endfunction
 
 
@@ -261,7 +264,7 @@ function s:Svndiff_next(...)
 			return
 		endif
 	endfor
-	echom 'svndiff: no more diff blocks below this one'
+	echom 'svndiff: no more diff blocks below cursor'
 endfunction
 
 
@@ -289,14 +292,18 @@ function Svndiff(...)
 	
 	if cmd == 'prev'
 		let s:is_active[fname] = 1
-		call s:Svndiff_update()
-		call s:Svndiff_prev()
+		let ok = s:Svndiff_update()
+		if ok
+			call s:Svndiff_prev()
+		endif
 	endif
 
 	if cmd == 'next'
 		let s:is_active[fname] = 1
-		call s:Svndiff_update()
-		call s:Svndiff_next()
+		let ok = s:Svndiff_update()
+		if ok
+			call s:Svndiff_next()
+		endif
 	endif
 
 endfunction
