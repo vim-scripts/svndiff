@@ -112,7 +112,16 @@
 " 3.1 2008-02-04  Fixed bug that broke plugin in non-english locales, thanks
 "                 to Bernhard Walle for the patch
 "
+" 3.2 2008-02-27	The latest rewrite broke vim 6 compatiblity. The plugin
+"                 is now simply disabled for older vim versions to avoid
+"                 a lot of warnings when loading.
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+if v:version < 700
+	finish
+endif
+
 
 let s:sign_base = 200000  " Base for our sign id's, hoping to avoid colisions
 let s:is_active = {}      " dictionary with buffer names that have svndiff active
@@ -320,9 +329,7 @@ sign define svndiff_change text=! texthl=diffChange
 
 if exists("g:svndiff_autoupdate")
 	autocmd CursorHold,CursorHoldI * call s:Svndiff_update()
-	if version >= 700
-		autocmd InsertLeave * call s:Svndiff_update()
-	end
+	autocmd InsertLeave * call s:Svndiff_update()
 endif
 
 " vi: ts=2 sw=2
