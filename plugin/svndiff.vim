@@ -16,11 +16,14 @@
 "
 " NOTE: This plugin is unix-only!
 "
-" An small vim 7.0 plugin for showing svn diff information in a file while
+" An small vim 7.0 plugin for showing RCS diff information in a file while
 " editing. This plugin runs a diff between the current buffer and the original
-" subversion file, and shows coloured signs indicating where the buffer
-" differs from the original file from the subversion repository. The original
+" file from svn or git, and shows coloured signs indicating where the buffer
+" differs from the original file from the repository. The original
 " text is not shown, only signs are used to indicate where changes were made.
+"
+" The plugin can be used for files managed with subversion or GIT. The type of
+" RCS will be detected when first issuing a svndiff command on the file.
 "
 " The following symbols and syntax highlight groups are used for the signs:
 "
@@ -34,9 +37,9 @@
 " -----
 "
 " The plugin defines one function: Svndiff(). This function figures out the
-" difference between the current buffer and it's subversion original, and adds
+" difference between the current buffer and it's svn/git original, and adds
 " the signs at the places where the buffer differs from the original file from
-" subversion. You'll need to call this function after making changes to update
+" svn or git. You'll need to call this function after making changes to update
 " the highlighting.
 "
 " The function takes one argument specifying an additional action to perform:
@@ -116,18 +119,28 @@
 "                 is now simply disabled for older vim versions to avoid
 "                 a lot of warnings when loading.
 "
+" 4.0 2008-11-24  Added GIT support. The RCS type is now detected (svn/git)
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if v:version < 700
 	finish
 endif
 
+" Globals for this plugin
 
 let s:sign_base = 200000  " Base for our sign id's, hoping to avoid colisions
 let s:is_active = {}      " dictionary with buffer names that have svndiff active
+let s:rcs_type = {}       " RCS type, will be autodetected to 'svn' or 'git'
+let s:rcs_cmd = {}        " Shell command to execute to get contents of clean file from RCS
 let s:diff_signs = {}     " dict with list of ids of all signs, per file
 let s:diff_blocks = {}    " dict with list of ids of first line of each diff block, per file
 let s:changedtick = {}    " dict with changedticks of each buffer since last invocation
+
+" Commands to execute to get current file contents in various rcs systems
+
+let s:rcs_cmd_svn = "svn cat "
+let s:rcs_cmd_git = "git cat-file -p HEAD:"
 
 "
 " Do the diff and update signs.
@@ -141,13 +154,29 @@ function s:Svndiff_update(...)
 		return 0
 	end
 
-	" Check if this file is managed by subversion, exit otherwise
+	" Guess RCS type for this file
 	
-	let info = system("LANG=C svn info " . fname)
-	if match(info, "Path") == -1
-		echom "Svndiff: Warning, file " . fname . " is not managed by subversion, or error running svn."
+	if ! has_key(s:rcs_type, fname) 
+
+		let info = system("LANG=C svn info " . fname)
+		if match(info, "Path") != -1
+			let s:rcs_type[fname] = "svn"
+			let s:rcs_cmd[fname] = s:rcs_cmd_svn
+		end
+
+		let info = system("git st " . fname)
+		if v:shell_error == 0
+			let s:rcs_type[fname] = "git"
+			let s:rcs_cmd[fname] = s:rcs_cmd_git
+		end
+	end
+
+	" Could not detect RCS type, print message and exit
+	
+	if ! has_key(s:rcs_type, fname) 
+		echom "Svndiff: Warning, file " . fname . " is not managed by subversion or git"
 		unlet s:is_active[fname]
-		return 0
+		return
 	end
 
 	" Check if the changedticks changed since the last invocation of this
@@ -163,7 +192,7 @@ function s:Svndiff_update(...)
 	" shell command calculating the diff in a friendly parsable format.
 
 	let contents = join(getbufline("%", 1, "$"), "\n")
-	let diff = system("diff -U0 <(svn cat " . fname . ") <(cat;echo)", contents)
+	let diff = system("diff -U0 <(" . s:rcs_cmd[fname] . fname . ") <(cat;echo)", contents)
 
 	" clear the old signs
 
