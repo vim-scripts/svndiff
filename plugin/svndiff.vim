@@ -121,6 +121,8 @@
 "
 " 4.0 2008-11-24  Added GIT support. The RCS type is now detected (svn/git)
 "
+" 4.1 2008-11-25	Added CVS support.
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if v:version < 700
@@ -141,6 +143,7 @@ let s:changedtick = {}    " dict with changedticks of each buffer since last inv
 
 let s:rcs_cmd_svn = "svn cat "
 let s:rcs_cmd_git = "git cat-file -p HEAD:"
+let s:rcs_cmd_cvs = "cvs -q update -p "
 
 "
 " Do the diff and update signs.
@@ -168,6 +171,12 @@ function s:Svndiff_update(...)
 		if v:shell_error == 0
 			let s:rcs_type[fname] = "git"
 			let s:rcs_cmd[fname] = s:rcs_cmd_git
+		end
+		
+		let info = system("cvs st " . fname)
+		if v:shell_error == 0
+			let s:rcs_type[fname] = "cvs"
+			let s:rcs_cmd[fname] = s:rcs_cmd_cvs
 		end
 	end
 
