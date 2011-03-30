@@ -8,20 +8,23 @@ Introduction
 NOTE: This plugin is unix-only!
 
 An small vim 7.0 plugin for showing RCS diff information in a file while
-editing. The following RCS types are supported:
+editing. This plugin runs a diff between the current buffer and the original
+file from the version control system, and shows coloured signs indicating
+where the buffer differs from the original file from the repository. The
+original text is not shown, only signs are used to indicate where changes were
+made. With proper key bindings configured, fast navigation between changed
+blocks is also provided.
 
- * CVS
- * Subversion (SVN)
- * Git
- * Mercurial
- 
-This plugin runs a diff between the current buffer and the original
-file from svn or git, and shows coloured signs indicating where the buffer
-differs from the original file from the repository. The original
-text is not shown, only signs are used to indicate where changes were made.
+Despite the name 'svndiff' this plugin supports the folling RCS systems:
 
-The plugin can be used for files managed with subversion or GIT. The type of
-RCS will be detected when first issuing a svndiff command on the file.
+- Subversion
+- Git
+- Mercurial
+- Perforce / p4
+- CVS
+
+The type of RCS will be detected when first issuing a svndiff command on
+the file.
 
 The following symbols and syntax highlight groups are used for the signs:
 
@@ -31,14 +34,15 @@ The following symbols and syntax highlight groups are used for the signs:
 
   < DiffDel:    Applied to the lines directly above and below a deleted block
                 (default=magenta)
+
 Usage
 -----
 
 The plugin defines one function: Svndiff(). This function figures out the
-difference between the current buffer and it's svn/git original, and adds
-the signs at the places where the buffer differs from the original file from
-svn or git. You'll need to call this function after making changes to update
-the highlighting.
+difference between the current buffer and it's RCS original, and adds the
+signs at the places where the buffer differs from the original file from svn
+or git. You'll need to call this function after making changes to update the
+highlighting.
 
 The function takes one argument specifying an additional action to perform:
 
@@ -53,6 +57,7 @@ example, add to your .vimrc:
   noremap <F4> :call Svndiff("next")<CR>
   noremap <F5> :call Svndiff("clear")<CR>
 
+
 Configuration
 -------------
 
@@ -63,7 +68,7 @@ The following configuration variables are availabe:
   If this variable is defined, svndiff will automatically update the signs
   when the user stops typing for a short while, and when leaving insert
   mode. This might slow things down on large files, so use with caution.
-  The vim variable 'updatetime' can be used to set the auto-update intervar,
+  The vim variable 'updatetime' can be used to set the auto-update interval,
   but not that changing this variable other effects as well. (refer to the
   vim docs for more info)
   To use, add to your .vimrc:
@@ -114,14 +119,17 @@ Changelog
 
 3.2 2008-02-27  The latest rewrite broke vim 6 compatiblity. The plugin
                 is now simply disabled for older vim versions to avoid
-
                 a lot of warnings when loading.
 
 4.0 2008-11-24  Added GIT support. The RCS type is now detected (svn/git)
 
-4.1 2008-11-25  Added CVS support
+4.1 2008-11-25  Added CVS support.
 
-4.3 2010-05-08  Added support for Mercurial, fixed git support (thanks 
-                          Frankovskyi Bogdan)
+4.2 2009-07-31  Added support for proper handling of non-unix file formats
+                which use different newline conventions (dos, mac)
 
+4.3 2010-05-08  Added support for Mercurial, fixed git support (thanks
+                Frankovskyi Bogdan)
+
+4.4 2011-03-30  Added support for perforce/p4 (thanks, Timandahaf)
 

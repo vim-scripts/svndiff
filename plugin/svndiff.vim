@@ -18,13 +18,22 @@
 "
 " An small vim 7.0 plugin for showing RCS diff information in a file while
 " editing. This plugin runs a diff between the current buffer and the original
-" file from svn, cvs, mercurial or git, and shows coloured signs indicating
+" file from the version control system, and shows coloured signs indicating
 " where the buffer differs from the original file from the repository. The
-" original text is not shown, only signs are used to indicate where changes
-" were made.
+" original text is not shown, only signs are used to indicate where changes were
+" made. With proper key bindings configured, fast navigation between changed
+" blocks is also provided.
 "
-" The plugin can be used for files managed with subversion or GIT. The type of
-" RCS will be detected when first issuing a svndiff command on the file.
+" Despite the name 'svndiff' this plugin supports the folling RCS systems:
+"
+" - Subversion
+" - Git
+" - Mercurial
+" - Perforce / p4
+" - CVS
+"
+" The type of RCS will be detected when first issuing a svndiff command on 
+" the file.
 "
 " The following symbols and syntax highlight groups are used for the signs:
 "
@@ -34,6 +43,7 @@
 "
 "   < DiffDel:    Applied to the lines directly above and below a deleted block
 "                 (default=magenta) 
+"
 " Usage
 " -----
 "
@@ -67,7 +77,7 @@
 "   If this variable is defined, svndiff will automatically update the signs
 "   when the user stops typing for a short while, and when leaving insert
 "   mode. This might slow things down on large files, so use with caution.
-"   The vim variable 'updatetime' can be used to set the auto-update intervar,
+"   The vim variable 'updatetime' can be used to set the auto-update interval,
 "   but not that changing this variable other effects as well. (refer to the 
 "   vim docs for more info) 
 "   To use, add to your .vimrc:
@@ -130,6 +140,8 @@
 " 4.3 2010-05-08	Added support for Mercurial, fixed git support (thanks 
 "                 Frankovskyi Bogdan)
 "
+" 4.4 2011-03-30	Added support for perforce/p4 (thanks, Timandahaf)
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if v:version < 700
@@ -140,7 +152,7 @@ endif
 
 let s:sign_base = 200000  " Base for our sign id's, hoping to avoid colisions
 let s:is_active = {}      " dictionary with buffer names that have svndiff active
-let s:rcs_type = {}       " RCS type, will be autodetected to one of svn/git/hg/cvs
+let s:rcs_type = {}       " RCS type, will be autodetected to one of svn/git/hg/cvs/p4
 let s:rcs_cmd = {}        " Shell command to execute to get contents of clean file from RCS
 let s:diff_signs = {}     " dict with list of ids of all signs, per file
 let s:diff_blocks = {}    " dict with list of ids of first line of each diff block, per file
@@ -153,6 +165,7 @@ let s:rcs_cmd_svn = "svn cat "
 let s:rcs_cmd_git = "git cat-file -p HEAD:"
 let s:rcs_cmd_hg  = "hg cat "
 let s:rcs_cmd_cvs = "cvs -q update -p "
+let s:rcs_cmd_p4  = "p4 print "
 
 "
 " Do the diff and update signs.
@@ -193,12 +206,18 @@ function s:Svndiff_update(...)
 			let s:rcs_type[fname] = "hg"
 			let s:rcs_cmd[fname] = s:rcs_cmd_hg
 		end
+
+		let info = system("p4 fstat " . fname)
+		if match(info, "depotFile") != -1
+			let s:rcs_type[fname] = "p4"
+			let s:rcs_cmd[fname] = s:rcs_cmd_p4
+		end
 	end
 
 	" Could not detect RCS type, print message and exit
 	
 	if ! has_key(s:rcs_type, fname) 
-		echom "Svndiff: Warning, file " . fname . " is not managed by subversion or git"
+		echom "Svndiff: Warning, file " . fname . " is not managed by a supported versioning system!"
 		unlet s:is_active[fname]
 		return
 	end
