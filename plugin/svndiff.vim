@@ -24,7 +24,7 @@
 " made. With proper key bindings configured, fast navigation between changed
 " blocks is also provided.
 "
-" Despite the name 'svndiff' this plugin supports the folling RCS systems:
+" Despite the name 'svndiff' this plugin supports the following RCS systems:
 "
 " - Subversion
 " - Git
@@ -142,6 +142,9 @@
 "
 " 4.4 2011-03-30	Added support for perforce/p4 (thanks, Timandahaf)
 "
+" 4.5 2011-10-09	Bugfix when trying to use svndiff in a new fileless buffer
+"                 (Frankovskyi Bogdan)
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if v:version < 700
@@ -183,6 +186,12 @@ function s:Svndiff_update(...)
 	
 	if ! has_key(s:rcs_type, fname) 
 
+		" skip new files created in vim buffer
+		
+		if ! filereadable(fname)
+			return 0
+		end
+			
 		let info = system("LANG=C svn info " . fname)
 		if match(info, "Path") != -1
 			let s:rcs_type[fname] = "svn"
@@ -367,7 +376,7 @@ function Svndiff(...)
 	let cmd = exists("a:1") ? a:1 : ''
 	let fname = bufname("%")
 	if fname == ""
-		echom "Buffer has no file name, can not do a svn diff"
+		echom "Buffer has no file name, can not do a diff"
 		return
 	endif
 

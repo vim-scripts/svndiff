@@ -15,7 +15,7 @@ original text is not shown, only signs are used to indicate where changes were
 made. With proper key bindings configured, fast navigation between changed
 blocks is also provided.
 
-Despite the name 'svndiff' this plugin supports the folling RCS systems:
+Despite the name 'svndiff' this plugin supports the following RCS systems:
 
 - Subversion
 - Git
@@ -132,4 +132,7 @@ Changelog
                 Frankovskyi Bogdan)
 
 4.4 2011-03-30  Added support for perforce/p4 (thanks, Timandahaf)
+
+4.5 2011-10-09  Bugfix when trying to use svndiff in a new fileless buffer (Frankovskyi Bogdan)
+
 
