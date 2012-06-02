@@ -26,11 +26,12 @@
 "
 " Despite the name 'svndiff' this plugin supports the following RCS systems:
 "
-" - Subversion
+" - CVS
+" - Fossil
 " - Git
 " - Mercurial
 " - Perforce / p4
-" - CVS
+" - Subversion
 "
 " The type of RCS will be detected when first issuing a svndiff command on 
 " the file.
