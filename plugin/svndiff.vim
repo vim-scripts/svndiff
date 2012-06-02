@@ -107,9 +107,9 @@
 " Changelog
 " ---------
 "
-" 1.0 2007-04-02	Initial version
+" 1.0 2007-04-02  Initial version
 "
-" 1.1 2007-04-02	Added goto prev/next diffblock commands
+" 1.1 2007-04-02  Added goto prev/next diffblock commands
 "
 " 1.2 2007-06-14  Updated diff arguments from -u0 (obsolete) to -U0
 "
@@ -126,24 +126,27 @@
 " 3.1 2008-02-04  Fixed bug that broke plugin in non-english locales, thanks
 "                 to Bernhard Walle for the patch
 "
-" 3.2 2008-02-27	The latest rewrite broke vim 6 compatiblity. The plugin
+" 3.2 2008-02-27  The latest rewrite broke vim 6 compatiblity. The plugin
 "                 is now simply disabled for older vim versions to avoid
 "                 a lot of warnings when loading.
 "
 " 4.0 2008-11-24  Added GIT support. The RCS type is now detected (svn/git)
 "
-" 4.1 2008-11-25	Added CVS support.
+" 4.1 2008-11-25  Added CVS support.
 "
-" 4.2 2009-07-31	Added support for proper handling of non-unix file formats
+" 4.2 2009-07-31  Added support for proper handling of non-unix file formats
 "                 which use different newline conventions (dos, mac)
 "
-" 4.3 2010-05-08	Added support for Mercurial, fixed git support (thanks 
+" 4.3 2010-05-08  Added support for Mercurial, fixed git support (thanks 
 "                 Frankovskyi Bogdan)
 "
-" 4.4 2011-03-30	Added support for perforce/p4 (thanks, Timandahaf)
+" 4.4 2011-03-30  Added support for perforce/p4 (thanks, Timandahaf)
 "
-" 4.5 2011-10-09	Bugfix when trying to use svndiff in a new fileless buffer
+" 4.5 2011-10-09  Bugfix when trying to use svndiff in a new fileless buffer
 "                 (Frankovskyi Bogdan)
+"
+" 4.6 2012-06-02  Added support for the Fossil SCM (Andrea Federico 
+"                 Grisotto)
 "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -169,6 +172,7 @@ let s:rcs_cmd_git = "git cat-file -p HEAD:"
 let s:rcs_cmd_hg  = "hg cat "
 let s:rcs_cmd_cvs = "cvs -q update -p "
 let s:rcs_cmd_p4  = "p4 print "
+let s:rcs_cmd_fossil = "fossil finfo -p "
 
 "
 " Do the diff and update signs.
@@ -203,7 +207,13 @@ function s:Svndiff_update(...)
 			let s:rcs_type[fname] = "git"
 			let s:rcs_cmd[fname] = s:rcs_cmd_git
 		end
-		
+
+		let info = system("fossil status " . fname)
+		if v:shell_error == 0
+			let s:rcs_type[fname] = "fossil"
+			let s:rcs_cmd[fname] = s:rcs_cmd_fossil
+		end
+
 		let info = system("cvs st " . fname)
 		if v:shell_error == 0
 			let s:rcs_type[fname] = "cvs"

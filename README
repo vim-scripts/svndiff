@@ -22,6 +22,7 @@ Despite the name 'svndiff' this plugin supports the following RCS systems:
 - Mercurial
 - Perforce / p4
 - CVS
+- Fossil
 
 The type of RCS will be detected when first issuing a svndiff command on
 the file.
@@ -69,7 +70,7 @@ The following configuration variables are availabe:
   when the user stops typing for a short while, and when leaving insert
   mode. This might slow things down on large files, so use with caution.
   The vim variable 'updatetime' can be used to set the auto-update interval,
-  but not that changing this variable other effects as well. (refer to the
+  but note that changing this variable other effects as well. (refer to the
   vim docs for more info)
   To use, add to your .vimrc:
 
@@ -134,5 +135,7 @@ Changelog
 4.4 2011-03-30  Added support for perforce/p4 (thanks, Timandahaf)
 
 4.5 2011-10-09  Bugfix when trying to use svndiff in a new fileless buffer (Frankovskyi Bogdan)
+
+4.6 2012-06-02  Added support for the Fossil SCM (Andrea Federico Grisotto)
 
 
