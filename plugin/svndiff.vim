@@ -79,7 +79,7 @@
 "   when the user stops typing for a short while, and when leaving insert
 "   mode. This might slow things down on large files, so use with caution.
 "   The vim variable 'updatetime' can be used to set the auto-update interval,
-"   but not that changing this variable other effects as well. (refer to the 
+"   but note that changing this variable other effects as well. (refer to the 
 "   vim docs for more info) 
 "   To use, add to your .vimrc:
 "
@@ -149,6 +149,8 @@
 " 4.6 2012-06-02  Added support for the Fossil SCM (Andrea Federico 
 "                 Grisotto)
 "
+" 4.7 2013-04-25  Fixed git diff when not in top git directory
+"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if v:version < 700
@@ -168,12 +170,12 @@ let s:newline = {}        " dict with newline character of each buffer
 
 " Commands to execute to get current file contents in various rcs systems
 
-let s:rcs_cmd_svn = "svn cat "
-let s:rcs_cmd_git = "git cat-file -p HEAD:"
-let s:rcs_cmd_hg  = "hg cat "
-let s:rcs_cmd_cvs = "cvs -q update -p "
-let s:rcs_cmd_p4  = "p4 print "
-let s:rcs_cmd_fossil = "fossil finfo -p "
+let s:rcs_cmd_svn = "svn cat '%s'"
+let s:rcs_cmd_git = "git cat-file -p HEAD:$(git ls-files --full-name '%s')"
+let s:rcs_cmd_hg  = "hg cat '%s'"
+let s:rcs_cmd_cvs = "cvs -q update -p '%s'"
+let s:rcs_cmd_p4  = "p4 print '%s'"
+let s:rcs_cmd_fossil = "fossil finfo -p '%s'"
 
 "
 " Do the diff and update signs.
@@ -263,7 +265,7 @@ function s:Svndiff_update(...)
 	" shell command calculating the diff in a friendly parsable format.
 
 	let contents = join(getbufline("%", 1, "$"), s:newline[fname])
-	let diff = system("diff -U0 <(" . s:rcs_cmd[fname] . fname . ") <(cat;echo)", contents)
+	let diff = system("diff -U0 <(" . substitute(s:rcs_cmd[fname], "%s", fname, "") . ") <(cat;echo)", contents)
 
 	" clear the old signs
 
